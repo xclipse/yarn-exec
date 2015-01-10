@@ -21,6 +21,7 @@ public class CreateFile {
     Configuration conf = new Configuration();
     String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
+    conf.set("dfs.default.name", "hdfs://h1");
     Path output = new Path("/output/");
     Path in = new Path("/in");
     FileSystem fs = FileSystem.get(conf);
@@ -40,6 +41,7 @@ public class CreateFile {
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(IntWritable.class);
     job.setInputFormatClass(KeyValueTextInputFormat.class);
+    
     FileInputFormat.addInputPath(job, in);
     FileOutputFormat.setOutputPath(job, output);
     System.exit(job.waitForCompletion(true) ? 0 : 1);
