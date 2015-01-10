@@ -34,7 +34,7 @@
     <dependency>
     	<groupId>jdk.tools</groupId>
     	<artifactId>jdk.tools</artifactId>
-    	<version>1.6</version>
+    	<version>1.7</version>
     	<scope>system</scope>
     	<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
     </dependency>
@@ -43,5 +43,42 @@
     	<artifactId>hadoop-hdfs</artifactId>
     	<version>2.2.0</version>
     </dependency>
+    <dependency>
+    	<groupId>org.apache.hadoop</groupId>
+    	<artifactId>hadoop-test</artifactId>
+    	<version>1.2.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.mrunit</groupId>
+    	<artifactId>mrunit</artifactId>
+    	<version>1.0.0</version>
+    	<classifier>hadoop2</classifier>
+    </dependency>
   </dependencies>
+  <build>
+  	<plugins>
+  		<plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+  			<artifactId>maven-resources-plugin</artifactId>
+  			<version>2.6</version>
+  		</plugin>
+  		<plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+  			<artifactId>maven-compiler-plugin</artifactId>
+  			<configuration>
+  				<source>1.6</source>
+  				<target>1.6</target>
+  			</configuration>
+  			<version>3.1</version>
+  		</plugin>
+  		<plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+  			<artifactId>maven-jar-plugin</artifactId>
+  			<version>2.5</version>
+  			<configuration>
+  				<outputDirectory>${basedir}</outputDirectory>
+  			</configuration>
+  		</plugin>
+  	</plugins>
+  </build>
 </project>
