@@ -24,6 +24,7 @@ public class CreateFile {
     conf.set("dfs.default.name", "hdfs://h1");
     Path output = new Path("/output/");
     Path in = new Path("/in");
+    conf.set("fs.default.name", "hdfs://h1");
     FileSystem fs = FileSystem.get(conf);
     System.out.println(output.getName() + " exist = " + fs.exists(output) + " isFolder = " + fs.isDirectory(output));
     System.out.println(in.getName() + " exist = " + fs.exists(in) + " isFolder = " + fs.isDirectory(in));
