@@ -1,5 +1,8 @@
 /target
+/bin
 *.class
 *.jar
 *.war
 *.ear
+.classpath
+.settings
