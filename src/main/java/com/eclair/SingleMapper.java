@@ -39,7 +39,7 @@ public class SingleMapper extends Configured implements Tool {
 		int exit = ToolRunner.run(new SingleMapper(), args);
 		System.exit(exit);
 	}
-	
+
 	public static class OneMapper extends Mapper<Text, Text, Text, Text>{
 		private int id;
 		private static int sid = 0;
@@ -49,7 +49,7 @@ public class SingleMapper extends Configured implements Tool {
 		@Override
 		protected void map(Text key, Text value, Mapper<Text, Text, Text, Text>.Context context)
 				throws IOException, InterruptedException {
-			Text k = new Text("id=" + id + " [" +key.toString() + "]");
+			Text k = new Text("[" +key.toString() + "]");
 			Text v = new Text();
 			context.write(k,value);
 		}
