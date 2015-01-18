@@ -29,7 +29,8 @@ public class SimpleDemo extends Configured implements Tool{
     }
     Job job = Job.getInstance(getConf());
     job.setJobName("Simple Mapper");
-
+    System.out.println(" ================== mapreduce.map.log.level =" + job.getConfiguration().get("mapreduce.map.log.level"));
+    
     FileInputFormat.addInputPath(job, new Path(args[0]));
     FileOutputFormat.setOutputPath(job, new Path(args[1]));
     //job.setInputFormatClass(KeyValueTextInputFormat.class);
@@ -68,6 +69,7 @@ public class SimpleDemo extends Configured implements Tool{
       if(context.getCounter(Counter.MAPPER).getValue() == 1){
         context.setStatus("ECLAIR 1st mapper start to work");
       }
+
       LOG.debug("This is LOG: current count is " + context.getCounter(Counter.MAPPER).getValue());
       System.out.println("ECLAIR This is system out: current count is " + context.getCounter(Counter.MAPPER).getValue());
       context.write(k,value);
