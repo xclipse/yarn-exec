@@ -1,10 +1,13 @@
 package com.eclair;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -27,9 +30,19 @@ public class SimpleDemo extends Configured implements Tool{
       System.err.printf("Usage: %s [generic options] <input> <output>\n", getClass().getSimpleName());
       return -1;
     }
+    Configuration conf = getConf();
+    conf.set("mapreduce.framework.name", "yarn");
+    conf.set("yarn.resourcemanager.hostname", "h1");
+    conf.set("fs.defaultFS", "hdfs://h1");
+    
     Job job = Job.getInstance(getConf());
     job.setJobName("Simple Mapper");
     System.out.println(" ================== mapreduce.map.log.level =" + job.getConfiguration().get("mapreduce.map.log.level"));
+    FileSystem fs = FileSystem.get(conf);
+    Path path = new Path("/out");
+    if(fs.exists(path)){
+    	fs.delete(path, true);
+    }
     
     FileInputFormat.addInputPath(job, new Path(args[0]));
     FileOutputFormat.setOutputPath(job, new Path(args[1]));
