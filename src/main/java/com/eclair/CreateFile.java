@@ -13,21 +13,20 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.GenericOptionsParser;
 
 public class CreateFile {
   public static void main(String[] args) throws IllegalArgumentException, IOException, InterruptedException, ClassNotFoundException {
 
     Configuration conf = new Configuration();
-    String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+    //String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
     conf.set("dfs.default.name", "hdfs://h1");
     Path output = new Path("/output/");
     Path in = new Path("/in");
     conf.set("fs.default.name", "hdfs://h1");
     FileSystem fs = FileSystem.get(conf);
-    System.out.println(output.getName() + " exist = " + fs.exists(output) + " isFolder = " + fs.isDirectory(output));
-    System.out.println(in.getName() + " exist = " + fs.exists(in) + " isFolder = " + fs.isDirectory(in));
+    //System.out.println(output.getName() + " exist = " + fs.exists(output) + " isFolder = " + fs.isDirectory(output));
+    //System.out.println(in.getName() + " exist = " + fs.exists(in) + " isFolder = " + fs.isDirectory(in));
     fs.mkdirs(output);
     if(fs.exists(output)){
       fs.delete(output, true);

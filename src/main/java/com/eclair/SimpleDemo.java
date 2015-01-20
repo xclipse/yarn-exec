@@ -1,7 +1,6 @@
 package com.eclair;
 
 import java.io.IOException;
-import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,16 +66,12 @@ public class SimpleDemo extends Configured implements Tool{
     MAPPER,REDUCE,TOTAL
   }
   public static class SimpleMapper extends Mapper<LongWritable, Text, Text, Text>{
-    private int id;
-    private static int sid = 0;
     public SimpleMapper() {
-      id = sid++;
     }
     @Override
     protected void map(LongWritable key, Text value, Mapper<LongWritable, Text, Text, Text>.Context context)
         throws IOException, InterruptedException {
       Text k = new Text("[" +key.toString() + "]");
-      Text v = new Text();
       context.getCounter(Counter.MAPPER).increment(1);
       context.getCounter(Counter.TOTAL).increment(1);
       if(context.getCounter(Counter.MAPPER).getValue() == 1){
