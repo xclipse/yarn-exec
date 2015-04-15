@@ -1,6 +1,7 @@
 package com.eclair;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -8,13 +9,18 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.chain.ChainMapper;
+import org.apache.hadoop.mapreduce.lib.chain.ChainReducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
+import org.apache.hadoop.mapreduce.lib.jobcontrol.JobControl;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -23,6 +29,7 @@ public class SimpleDemo extends Configured implements Tool{
 
   private final static Log LOG = LogFactory.getLog(SimpleDemo.class);
 
+  //hadoop jar test/test.jar com.eclair.SimpleDemo -D mapreduce.map.log.level=DEBUG /in /out
   @Override
   public int run(String[] args) throws Exception {
     if(args.length != 2){
@@ -33,8 +40,8 @@ public class SimpleDemo extends Configured implements Tool{
     conf.set("mapreduce.framework.name", "yarn");
     conf.set("yarn.resourcemanager.hostname", "h1");
     conf.set("fs.defaultFS", "hdfs://h1");
-    
-    Job job = Job.getInstance(getConf());
+    ControlledJob cjob =new ControlledJob(getConf());
+    Job job = cjob.getJob();
     job.setJobName("Simple Mapper");
     System.out.println(" ================== mapreduce.map.log.level =" + job.getConfiguration().get("mapreduce.map.log.level"));
     FileSystem fs = FileSystem.get(conf);
@@ -42,7 +49,7 @@ public class SimpleDemo extends Configured implements Tool{
     if(fs.exists(path)){
     	fs.delete(path, true);
     }
-    
+
     FileInputFormat.addInputPath(job, new Path(args[0]));
     FileOutputFormat.setOutputPath(job, new Path(args[1]));
     //job.setInputFormatClass(KeyValueTextInputFormat.class);
@@ -54,10 +61,31 @@ public class SimpleDemo extends Configured implements Tool{
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
     //job.setNumReduceTasks(0);
-    return job.waitForCompletion(true) ? 0 : 1;
+    JobControl jc = new JobControl("groupname");
+	jc.addJob(cjob);
+	LOG.info("jc.getReadyJobsList() = " +jc.getReadyJobsList().size());
+	LOG.info("jc.getRunningJobList() = " +jc.getRunningJobList().size());
+	new Thread(jc).start();
+	while(true){
+		if(jc.allFinished()){
+			LOG.info("jc.getSuccessfulJobList() =" + jc.getSuccessfulJobList());
+			jc.stop();
+			return 0;
+		}
+		if(jc.getFailedJobList().size() > 0){
+			LOG.info("jc.getFailedJobList() =" + jc.getFailedJobList());
+			jc.stop();
+			return -1;
+		}
+		LOG.info("Sleep 20 sec");
+		LOG.info("jc.getReadyJobsList() = " +jc.getReadyJobsList().size());
+		LOG.info("jc.getRunningJobList() = " +jc.getRunningJobList().size());
+		TimeUnit.SECONDS.sleep(20);
+	}
   }
 
   public static void main(String[] args) throws Exception {
+
     int exit = ToolRunner.run(new SimpleDemo(), args);
     System.exit(exit);
   }
