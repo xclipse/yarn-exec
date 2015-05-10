@@ -2,6 +2,8 @@ package com.eclair;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -15,6 +17,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 public class SingleMapper extends Configured implements Tool {
 
+	private final static Log LOG = LogFactory.getLog(SingleMapper.class);
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 2){
