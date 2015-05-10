@@ -13,7 +13,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.CombineFileSplit;
 import org.apache.hadoop.mapreduce.lib.input.CombineTextInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -30,6 +32,7 @@ public class CombineHarFile extends Configured implements Tool {
 	enum Counter {
 		MAPPER, REDUCE, TOTAL
 	}
+
 
 	@Override
 	public int run(String[] args) throws Exception {
@@ -68,9 +71,16 @@ public class CombineHarFile extends Configured implements Tool {
 	public static class CombineMapper extends
 			Mapper<LongWritable, Text, Text, Text> {
 		@Override
+		protected void setup(Mapper<LongWritable, Text, Text, Text>.Context context) throws IOException, InterruptedException {
+			CombineFileSplit cfs = (CombineFileSplit)context.getInputSplit();
+			LOG.info(" ECCHANGE mapper setup -- getNumPaths = " + cfs.getNumPaths() );
+			LOG.info(" ECCHANGE mapper setup -- check Paths +++ " + cfs);
+		}
+		@Override
 		protected void map(LongWritable key, Text value,
 				Mapper<LongWritable, Text, Text, Text>.Context context)
 				throws IOException, InterruptedException {
+			CombineFileSplit cfs = (CombineFileSplit)context.getInputSplit();
 			Text k = new Text("[" + key.toString() + "]");
 			context.getCounter(Counter.MAPPER).increment(1);
 			context.getCounter(Counter.TOTAL).increment(1);

@@ -21,4 +21,16 @@ public class SingleMapperTester {
     .runTest();
   }
 
+  @Test
+  public void simpleTest(){
+	  int i = 1;
+
+	  do{
+		  System.out.println(i ++);
+		  if(i < 3){
+			  continue;
+		  }
+	  }while (false);
+
+  }
 }

@@ -20,10 +20,8 @@ public class CreateFile {
     Configuration conf = new Configuration();
     //String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-    conf.set("dfs.defaultFS", "hdfs://h1");
-    Path output = new Path("/output/");
-    Path in = new Path("/in");
     conf.set("fs.defaultFS", "hdfs://h1");
+    Path output = new Path("/output/");
     FileSystem fs = FileSystem.get(conf);
     //System.out.println(output.getName() + " exist = " + fs.exists(output) + " isFolder = " + fs.isDirectory(output));
     //System.out.println(in.getName() + " exist = " + fs.exists(in) + " isFolder = " + fs.isDirectory(in));
@@ -41,8 +39,8 @@ public class CreateFile {
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(IntWritable.class);
     job.setInputFormatClass(KeyValueTextInputFormat.class);
-    
-    FileInputFormat.addInputPath(job, in);
+
+    //FileInputFormat.addInputPath(job, in);
     FileOutputFormat.setOutputPath(job, output);
     System.exit(job.waitForCompletion(true) ? 0 : 1);
   }
@@ -51,7 +49,8 @@ public class CreateFile {
     @Override
     protected void map(Text key, Text value, Context context) throws IOException,
         InterruptedException {
-      context.write(key, new IntWritable(Integer.parseInt(value.toString())));
+      int i = 0;
+      context.write(key, new IntWritable(i++));
     }
   }
 
@@ -65,9 +64,6 @@ public class CreateFile {
       }
       ctx.write(key, new IntWritable(sum));
     }
-  }
-
-  public static class MyInputFormat extends KeyValueTextInputFormat{
   }
 
 }

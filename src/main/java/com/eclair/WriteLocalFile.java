@@ -16,14 +16,15 @@ public class WriteLocalFile {
 		Configuration conf = new Configuration();
 	    //String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 
-	    conf.set("dfs.defaultFS", "hdfs://h1");
+	    conf.set("dfs.defaultFS", "file:///tmp");
 	    Path outpath = new Path("/tmp/file.txt");
-	    Path inpath = new Path("/in/file1.txt");
+	    Path inpath = new Path("/tmp/file1.txt");
 
 	    LocalFileSystem outfs = FileSystem.getLocal(conf);
 	    FileSystem infs = FileSystem.get(conf);
 	    FSDataOutputStream out = outfs.create(outpath);
 	    FSDataInputStream in = infs.open(inpath);
+
 
 	    IOUtils.copyBytes(in, out, 1024, true);
 
