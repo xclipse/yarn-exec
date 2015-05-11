@@ -14,6 +14,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MapFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -40,6 +41,7 @@ public class MultipleOutputDemo extends Configured implements Tool{
 		job.setInputFormatClass(KeyValueTextInputFormat.class);
 		job.setJarByClass(getClass());
 		job.setMapperClass(OneMapper.class);
+		job.setOutputFormatClass(LazyOutputFormat.class);
 		MultipleOutputs.addNamedOutput(job, NamedOutput.seq.toString(), SequenceFileOutputFormat.class, Text.class, Text.class);
 		MultipleOutputs.addNamedOutput(job, NamedOutput.text.toString(), TextOutputFormat.class, NullWritable.class, Text.class);
 		MultipleOutputs.addNamedOutput(job, NamedOutput.map.toString(), MapFileOutputFormat.class, IntWritable.class, Text.class);
@@ -65,11 +67,28 @@ public class MultipleOutputDemo extends Configured implements Tool{
 			context.getCounter(NamedOutput.map).setValue(0);
 		}
 		@Override
+		protected void cleanup(
+				Mapper<Text, Text, NullWritable, NullWritable>.Context context)
+				throws IOException, InterruptedException {
+			super.cleanup(context);
+			mo.close();
+		}
+		@Override
 		protected void map(Text key, Text value, Mapper<Text, Text, NullWritable, NullWritable>.Context context)
 				throws IOException, InterruptedException {
 			String baseOutputPath = key.toString();
+			LOG.info("baseOutputPath = " + baseOutputPath);
 			String namedOutput = baseOutputPath.split("/")[0];
-			switch(NamedOutput.valueOf(namedOutput)){
+			LOG.info("namedOutput = " + namedOutput);
+			
+			NamedOutput valueOf = null;
+			try {
+				valueOf = NamedOutput.valueOf(namedOutput);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+			switch(valueOf){
 			case seq:
 				mo.write(namedOutput, key, value, baseOutputPath);
 				break;
@@ -81,7 +100,10 @@ public class MultipleOutputDemo extends Configured implements Tool{
 				ct.increment(10);
 				mo.write(namedOutput, new IntWritable((int) ct.getValue()), value, baseOutputPath);
 				break;
+			default:
+				break;
 			}
 		}
+		
 	}
 }
