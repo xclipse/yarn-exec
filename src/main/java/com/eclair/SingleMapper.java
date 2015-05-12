@@ -4,7 +4,9 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -24,11 +26,18 @@ public class SingleMapper extends Configured implements Tool {
 			System.err.printf("Usage: %s [generic options] <input> <output>\n", getClass().getSimpleName());
 			return -1;
 		}
-		Job job = Job.getInstance(getConf());
+		Configuration conf = getConf();
+		LOG.info(" mapreduce.job.ubertask.enable = " + conf.get("mapreduce.job.ubertask.enable"));
+		Job job = Job.getInstance(conf);
+		Path outPath = new Path(args[1]);
+		FileSystem fileSystem = FileSystem.get(conf);
+		if(fileSystem.exists(outPath)){
+			fileSystem.delete(outPath, true);
+		}
 		job.setJobName("Single Mapper");
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		FileOutputFormat.setOutputPath(job, outPath);
 		job.setInputFormatClass(KeyValueTextInputFormat.class);
 		job.setJarByClass(getClass());
 		job.setMapperClass(OneMapper.class);
