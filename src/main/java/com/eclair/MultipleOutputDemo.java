@@ -1,16 +1,21 @@
 package com.eclair;
 import java.io.IOException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.TaskCounter;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -41,11 +46,15 @@ public class MultipleOutputDemo extends Configured implements Tool{
 		job.setInputFormatClass(KeyValueTextInputFormat.class);
 		job.setJarByClass(getClass());
 		job.setMapperClass(OneMapper.class);
-		job.setOutputFormatClass(LazyOutputFormat.class);
+
+
+
+		LazyOutputFormat.setOutputFormatClass(job, TextOutputFormat.class);
+		SequenceFileOutputFormat.setOutputCompressionType(job, CompressionType.BLOCK);
 		MultipleOutputs.addNamedOutput(job, NamedOutput.seq.toString(), SequenceFileOutputFormat.class, Text.class, Text.class);
 		MultipleOutputs.addNamedOutput(job, NamedOutput.text.toString(), TextOutputFormat.class, NullWritable.class, Text.class);
 		MultipleOutputs.addNamedOutput(job, NamedOutput.map.toString(), MapFileOutputFormat.class, IntWritable.class, Text.class);
-
+		MultipleOutputs.setCountersEnabled(job, true);
 
 		job.setNumReduceTasks(0);
 		return job.waitForCompletion(true) ? 0 : 1;
@@ -64,7 +73,6 @@ public class MultipleOutputDemo extends Configured implements Tool{
 		protected void setup(Context context) throws IOException,
 				InterruptedException {
 			mo = new MultipleOutputs<NullWritable, NullWritable>(context);
-			context.getCounter(NamedOutput.map).setValue(0);
 		}
 		@Override
 		protected void cleanup(
@@ -80,30 +88,37 @@ public class MultipleOutputDemo extends Configured implements Tool{
 			LOG.info("baseOutputPath = " + baseOutputPath);
 			String namedOutput = baseOutputPath.split("/")[0];
 			LOG.info("namedOutput = " + namedOutput);
-			
-			NamedOutput valueOf = null;
+			LOG.info(" MAP_INPUT_RECORDS = " + context.getCounter(TaskCounter.MAP_INPUT_RECORDS).getValue());
+
+ 			NamedOutput valueOf = null;
 			try {
 				valueOf = NamedOutput.valueOf(namedOutput);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return;
 			}
+			Counter ct;
 			switch(valueOf){
 			case seq:
+				ct = context.getCounter(NamedOutput.seq);
+				ct.increment(1);
 				mo.write(namedOutput, key, value, baseOutputPath);
 				break;
 			case text:
+				ct = context.getCounter(NamedOutput.text);
+				ct.increment(1);
 				mo.write(namedOutput, NullWritable.get(), value, baseOutputPath);
 				break;
 			case map:
-				Counter ct = context.getCounter(NamedOutput.map);
-				ct.increment(10);
+				ct = context.getCounter(NamedOutput.map);
+				ct.increment(1);
+				LOG.info(" TaskAttemptID =" + context.getTaskAttemptID() +  " Map Counter = " + ct.getValue());
 				mo.write(namedOutput, new IntWritable((int) ct.getValue()), value, baseOutputPath);
 				break;
 			default:
 				break;
 			}
 		}
-		
+
 	}
 }
