@@ -1,9 +1,6 @@
 package com.eclair;
 import java.io.IOException;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configured;

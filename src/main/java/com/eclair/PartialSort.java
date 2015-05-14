@@ -31,6 +31,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MapFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
+import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -92,9 +93,8 @@ public class PartialSort extends Configured implements Tool {
 			context.write(new IntWritable(Integer.valueOf(key.toString())),value);
 		}
 	}
-	
-	@SuppressWarnings("rawtypes")
-	public static <K extends WritableComparable<?> , V extends Writable> int lookup(Configuration conf, String mapPath, K key, V value,  Class<? extends WritableComparable> clazz) throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+
+	public static <K extends WritableComparable<?> , V extends Writable> int lookup(Configuration conf, String mapPath, K key, V value,  Class<? extends K> clazz) throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		Path path = new Path(mapPath);
 		Reader[] readers = MapFileOutputFormat.getReaders(path, conf);
 		Partitioner<K, V> partitioner = new HashPartitioner<K, V>();
@@ -104,8 +104,8 @@ public class PartialSort extends Configured implements Tool {
 			LOG.info(" No Key Found ---");
 			return -1;
 		}
-		Constructor<? extends WritableComparable> c = clazz.getConstructor();
-		WritableComparable<?> newKey = c.newInstance();
+		WritableComparable<?> newKey = ReflectionUtils.newInstance(clazz, conf);
+		ReflectionUtils.copy(conf, key, newKey);
 		do{
 			LOG.info("Find Key = " + key + " value = " + value);
 		}while(reader.next(newKey, value) && newKey.equals(key));

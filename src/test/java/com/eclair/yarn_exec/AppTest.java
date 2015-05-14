@@ -1,8 +1,13 @@
 package com.eclair.yarn_exec;
 
-import junit.framework.Test;
+import java.util.ArrayList;
+import java.util.List;
+
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
+
+import org.junit.Test;
+
+
 
 /**
  * Unit test for simple App.
@@ -10,30 +15,30 @@ import junit.framework.TestSuite;
 public class AppTest
     extends TestCase
 {
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
+
     public AppTest( String testName )
     {
         super( testName );
         System.out.println(String.format("%1$03d", 24));
     }
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
 
-    /**
-     * Rigourous Test :-)
-     */
+    @Test
     public void testApp()
     {
-        assertTrue( true );
+        List<? super B> list = new ArrayList<B>();
+        list.add(new C());
+        assertEquals("Not Same class", C.class, list.get(0).getClass());
+    }
+
+    static class A{
+
+    }
+
+    static class B extends A{
+
+    }
+    static class C extends B{
+
     }
 }

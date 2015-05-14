@@ -1,6 +1,10 @@
 package com.eclair;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -8,18 +12,21 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-public class SingleMapper extends Configured implements Tool {
+public class SecondarySort extends Configured implements Tool {
 
-	private final static Log LOG = LogFactory.getLog(SingleMapper.class);
+	private final static Log LOG = LogFactory.getLog(SecondarySort.class);
 	@Override
 	public int run(String[] args) throws Exception {
 		if(args.length != 2){
@@ -27,11 +34,6 @@ public class SingleMapper extends Configured implements Tool {
 			return -1;
 		}
 
-		// Wrong Sample...............
-//		Configuration conf = getConf();
-//		Job job = Job.getInstance(conf);
-
-		// get conf from job
 		Job job = Job.getInstance(getConf());
 		Configuration conf = job.getConfiguration();
 
@@ -45,7 +47,7 @@ public class SingleMapper extends Configured implements Tool {
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, outPath);
-		job.setInputFormatClass(KeyValueTextInputFormat.class);
+		job.setInputFormatClass(TextInputFormat.class);
 		job.setJarByClass(getClass());
 		job.setMapperClass(OneMapper.class);
 		job.setOutputKeyClass(Text.class);
@@ -55,16 +57,40 @@ public class SingleMapper extends Configured implements Tool {
 	}
 
 	public static void main(String[] args) throws Exception {
-		int exit = ToolRunner.run(new SingleMapper(), args);
+		int exit = ToolRunner.run(new SecondarySort(), args);
 		System.exit(exit);
 	}
 
-	public static class OneMapper extends Mapper<Text, Text, Text, Text>{
+	static class ComponentComparator extends WritableComparator{
+
+	}
+
+	static class ComponentWritable implements WritableComparable<WritableComparable<?>>{
+
+		List<ComponentWritable> components = new ArrayList<SecondarySort.ComponentWritable>();
+		WritableComparable<WritableComparable<?>> value;
+
 		@Override
-		protected void map(Text key, Text value, Mapper<Text, Text, Text, Text>.Context context)
+		public void write(DataOutput out) throws IOException {
+
+		}
+
+		@Override
+		public void readFields(DataInput in) throws IOException {
+
+		}
+
+		@Override
+		public int compareTo(WritableComparable<?> o) {
+			return value.compareTo(o);
+		}
+
+	}
+	public static class OneMapper extends Mapper<LongWritable, Text, Text, Text>{
+		@Override
+		protected void map(LongWritable key, Text value, Mapper<LongWritable, Text, Text, Text>.Context context)
 				throws IOException, InterruptedException {
-			Text k = new Text("[" +key.toString() + "]");
-			context.write(k,value);
+			//context.write(k,value);
 		}
 	}
 }
